@@ -1,0 +1,85 @@
+# Drop table for Goblin enemy
+
+[table]
+id = "goblin"
+
+[[table.rolls]]
+count = 3
+weight = 60
+
+[[table.rolls]]
+count = 5
+weight = 30
+
+[[table.rolls]]
+count = 8
+weight = 10
+
+# Weapons
+[[entries]]
+type = "item"
+base_type = "iron_sword"
+weight = 20
+rarity_bonus = 5
+
+[[entries]]
+type = "item"
+base_type = "steel_axe"
+weight = 15
+rarity_bonus = 5
+
+[[entries]]
+type = "item"
+base_type = "silver_dagger"
+weight = 18
+rarity_bonus = 3
+
+# Armour
+[[entries]]
+type = "item"
+base_type = "leather_vest"
+weight = 20
+rarity_bonus = 3
+
+[[entries]]
+type = "item"
+base_type = "chain_mail"
+weight = 12
+rarity_bonus = 5
+
+[[entries]]
+type = "item"
+base_type = "iron_helmet"
+weight = 15
+rarity_bonus = 3
+
+# Currencies
+[[entries]]
+type = "currency"
+id = "orb_of_transmutation"
+count = [1, 2]
+weight = 90
+
+[[entries]]
+type = "currency"
+id = "orb_of_augmentation"
+count = 1
+weight = 30
+
+[[entries]]
+type = "currency"
+id = "orb_of_alteration"
+count = 1
+weight = 20
+
+[[entries]]
+type = "currency"
+id = "chaos_orb"
+count = 1
+weight = 5
+rarity_bonus = 10
+
+# No drop chance
+[[entries]]
+type = "no_drop"
+weight = 15

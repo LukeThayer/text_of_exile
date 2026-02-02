@@ -14,15 +14,25 @@ use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io;
 
 fn main() -> Result<()> {
+    // Initialize stat_core constants (armour, evasion, resistance formulas)
+    stat_core::init_constants_default().expect("Failed to initialize stat_core constants");
+
+    // Try to create app first (loads config) before terminal setup
+    // This way config errors are visible
+    let mut app = match App::new() {
+        Ok(app) => app,
+        Err(e) => {
+            eprintln!("Failed to initialize: {e}");
+            return Err(e);
+        }
+    };
+
     // Setup terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-
-    // Create app and run
-    let mut app = App::new()?;
     let result = run_app(&mut terminal, &mut app);
 
     // Restore terminal

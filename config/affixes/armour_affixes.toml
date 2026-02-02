@@ -1,0 +1,118 @@
+# Armour affixes for loot_core
+
+[[affixes]]
+id = "added_life_1"
+name = "Sturdy"
+type = "prefix"
+stat = "added_life"
+scope = "global"
+tags = ["Life", "Defense"]
+allowed_classes = ["helmet", "body_armour", "gloves", "boots", "shield", "belt", "ring", "amulet"]
+
+[[affixes.tiers]]
+tier = 1
+weight = 100
+min = 10
+max = 20
+min_ilvl = 1
+
+[[affixes.tiers]]
+tier = 2
+weight = 70
+min = 20
+max = 35
+min_ilvl = 10
+
+[[affixes]]
+id = "added_armour_1"
+name = "Reinforced"
+type = "prefix"
+stat = "added_armour"
+scope = "local"
+tags = ["Armour", "Defense"]
+allowed_classes = ["helmet", "body_armour", "gloves", "boots", "shield"]
+
+[[affixes.tiers]]
+tier = 1
+weight = 80
+min = 10
+max = 25
+min_ilvl = 1
+
+[[affixes]]
+id = "added_evasion_1"
+name = "Agile"
+type = "prefix"
+stat = "added_evasion"
+scope = "local"
+tags = ["Evasion", "Defense"]
+allowed_classes = ["helmet", "body_armour", "gloves", "boots"]
+
+[[affixes.tiers]]
+tier = 1
+weight = 80
+min = 10
+max = 25
+min_ilvl = 1
+
+[[affixes]]
+id = "fire_res_1"
+name = "of the Salamander"
+type = "suffix"
+stat = "fire_resistance"
+scope = "global"
+tags = ["Fire", "Resistance"]
+allowed_classes = ["helmet", "body_armour", "gloves", "boots", "shield", "ring", "amulet", "belt"]
+
+[[affixes.tiers]]
+tier = 1
+weight = 70
+min = 10
+max = 20
+min_ilvl = 1
+
+[[affixes.tiers]]
+tier = 2
+weight = 50
+min = 20
+max = 30
+min_ilvl = 15
+
+[[affixes]]
+id = "cold_res_1"
+name = "of the Yeti"
+type = "suffix"
+stat = "cold_resistance"
+scope = "global"
+tags = ["Cold", "Resistance"]
+allowed_classes = ["helmet", "body_armour", "gloves", "boots", "shield", "ring", "amulet", "belt"]
+
+[[affixes.tiers]]
+tier = 1
+weight = 70
+min = 10
+max = 20
+min_ilvl = 1
+
+[[affixes.tiers]]
+tier = 2
+weight = 50
+min = 20
+max = 30
+min_ilvl = 15
+
+[[affixes]]
+id = "lightning_res_1"
+name = "of the Storm"
+type = "suffix"
+stat = "lightning_resistance"
+scope = "global"
+tags = ["Lightning", "Resistance"]
+allowed_classes = ["helmet", "body_armour", "gloves", "boots", "shield", "ring", "amulet", "belt"]
+
+[[affixes.tiers]]
+tier = 1
+weight = 70
+min = 10
+max = 20
+min_ilvl = 1

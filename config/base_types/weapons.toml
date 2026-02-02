@@ -1,0 +1,73 @@
+# Weapon base types for loot_core
+
+[[base_types]]
+id = "iron_sword"
+name = "Iron Sword"
+class = "one_hand_sword"
+tags = ["Weapon", "Melee", "Damage", "Critical"]
+
+[base_types.requirements]
+level = 1
+
+[base_types.damage]
+attack_speed = 1.2
+critical_chance = 5.0
+
+[[base_types.damage.damages]]
+type = "physical"
+min = 5
+max = 12
+
+[[base_types]]
+id = "steel_axe"
+name = "Steel Axe"
+class = "one_hand_axe"
+tags = ["Weapon", "Melee", "Damage", "Critical"]
+
+[base_types.requirements]
+level = 5
+
+[base_types.damage]
+attack_speed = 1.0
+critical_chance = 5.0
+
+[[base_types.damage.damages]]
+type = "physical"
+min = 8
+max = 16
+
+[[base_types]]
+id = "bronze_mace"
+name = "Bronze Mace"
+class = "one_hand_mace"
+tags = ["Weapon", "Melee", "Damage", "Critical"]
+
+[base_types.requirements]
+level = 3
+
+[base_types.damage]
+attack_speed = 0.9
+critical_chance = 5.0
+
+[[base_types.damage.damages]]
+type = "physical"
+min = 6
+max = 14
+
+[[base_types]]
+id = "silver_dagger"
+name = "Silver Dagger"
+class = "dagger"
+tags = ["Weapon", "Melee", "Damage", "Critical"]
+
+[base_types.requirements]
+level = 8
+
+[base_types.damage]
+attack_speed = 1.5
+critical_chance = 8.0
+
+[[base_types.damage.damages]]
+type = "physical"
+min = 4
+max = 10

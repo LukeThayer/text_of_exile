@@ -6,21 +6,24 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
+use stat_core::EquipmentSlot;
 
 pub fn render(frame: &mut Frame, app: &App, area: Rect) {
     let player = &app.player;
+    let stats = &player.stats;
 
-    let hp_bar = create_bar(player.current_hp, player.max_hp, Color::Red);
-    let mana_bar = create_bar(player.current_mana, player.max_mana, Color::Blue);
+    let max_life = player.max_life();
+    let max_mana = player.max_mana();
+
+    let hp_bar = create_bar(stats.current_life, max_life, Color::Red);
+    let mana_bar = create_bar(stats.current_mana, max_mana, Color::Blue);
 
     let weapon_name = player
-        .equipped_weapon
-        .as_ref()
+        .get_equipped(EquipmentSlot::MainHand)
         .map(|w| w.name.as_str())
-        .unwrap_or("(none)");
+        .unwrap_or("(unarmed)");
     let armor_name = player
-        .equipped_armor
-        .as_ref()
+        .get_equipped(EquipmentSlot::BodyArmour)
         .map(|a| a.name.as_str())
         .unwrap_or("(none)");
 
@@ -29,30 +32,34 @@ pub fn render(frame: &mut Frame, app: &App, area: Rect) {
         Line::from(vec![
             Span::raw("HP:   "),
             Span::styled(hp_bar, Style::default().fg(Color::Red)),
-            Span::raw(format!(" {}/{}", player.current_hp, player.max_hp)),
+            Span::raw(format!(" {:.0}/{:.0}", stats.current_life, max_life)),
         ]),
         Line::from(vec![
             Span::raw("Mana: "),
             Span::styled(mana_bar, Style::default().fg(Color::Blue)),
-            Span::raw(format!(" {}/{}", player.current_mana, player.max_mana)),
+            Span::raw(format!(" {:.0}/{:.0}", stats.current_mana, max_mana)),
         ]),
         Line::from(""),
-        Line::from(format!("STR: {}", player.strength)),
-        Line::from(format!("DEX: {}", player.dexterity)),
-        Line::from(format!("INT: {}", player.intelligence)),
+        Line::from(format!("STR: {:.0}", stats.strength.compute())),
+        Line::from(format!("DEX: {:.0}", stats.dexterity.compute())),
+        Line::from(format!("INT: {:.0}", stats.intelligence.compute())),
         Line::from(""),
-        Line::from(format!("Attack:  {}", player.calculate_attack())),
-        Line::from(format!("Defense: {}", player.calculate_defense())),
+        Line::from(format!(
+            "Damage: {:.0}-{:.0}",
+            stats.weapon_physical_min, stats.weapon_physical_max
+        )),
+        Line::from(format!("Armour: {:.0}", stats.armour.compute())),
+        Line::from(format!("Evasion: {:.0}", stats.evasion.compute())),
         Line::from(""),
         Line::from(Span::styled(
-            "─── Equipment ───",
+            "--- Equipment ---",
             Style::default().add_modifier(Modifier::BOLD),
         )),
         Line::from(format!("Weapon: {}", weapon_name)),
         Line::from(format!("Armor:  {}", armor_name)),
         Line::from(""),
         Line::from(Span::styled(
-            "─── Skills ───",
+            "--- Skills ---",
             Style::default().add_modifier(Modifier::BOLD),
         )),
     ];
@@ -60,11 +67,12 @@ pub fn render(frame: &mut Frame, app: &App, area: Rect) {
     let mut all_lines = lines;
 
     for (i, skill) in player.skills.iter().enumerate() {
+        let mana_cost = player.skill_mana_costs.get(i).copied().unwrap_or(0);
         all_lines.push(Line::from(format!(
             "[{}] {} ({}mp)",
             i + 1,
             skill.name,
-            skill.mana_cost
+            mana_cost
         )));
     }
 
@@ -74,9 +82,10 @@ pub fn render(frame: &mut Frame, app: &App, area: Rect) {
     frame.render_widget(paragraph, area);
 }
 
-fn create_bar(current: u32, max: u32, _color: Color) -> String {
+fn create_bar(current: f64, max: f64, _color: Color) -> String {
     let width = 8;
-    let filled = ((current as f32 / max as f32) * width as f32) as usize;
+    let ratio = if max > 0.0 { current / max } else { 0.0 };
+    let filled = (ratio * width as f64) as usize;
     let empty = width - filled;
     format!("{}{}", "█".repeat(filled), "░".repeat(empty))
 }

@@ -1,151 +1,156 @@
-use super::player::EquipSlot;
-use rand::rngs::StdRng;
-use rand::Rng;
+use loot_core::{Item, Rarity};
 
-#[derive(Debug, Clone)]
-pub struct ItemStats {
-    pub damage: u32,
-    pub defense: u32,
+/// Represents either an item or a currency in the inventory
+pub enum InventoryEntry {
+    Item(Item),
+    Currency { id: String, count: u32 },
 }
 
-#[derive(Debug, Clone)]
-pub struct Item {
-    pub name: String,
-    pub slot: EquipSlot,
-    pub stats: ItemStats,
-    pub rarity: Rarity,
-    pub affixes: Vec<String>,
-}
+impl InventoryEntry {
+    pub fn as_item(&self) -> Option<&Item> {
+        match self {
+            InventoryEntry::Item(item) => Some(item),
+            InventoryEntry::Currency { .. } => None,
+        }
+    }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Rarity {
-    Common,
-    Magic,
-    Rare,
-}
-
-impl Item {
-    pub fn is_equipment(&self) -> bool {
-        self.slot != EquipSlot::None
+    pub fn name(&self) -> String {
+        match self {
+            InventoryEntry::Item(item) => item.name.clone(),
+            InventoryEntry::Currency { id, count } => {
+                if *count > 1 {
+                    format!("{} x{}", id, count)
+                } else {
+                    id.clone()
+                }
+            }
+        }
     }
 
     pub fn is_currency(&self) -> bool {
-        self.name.contains("Orb")
+        matches!(self, InventoryEntry::Currency { .. })
     }
 
-    pub fn apply_currency(&mut self, currency: &Item) {
-        // Simplified currency application
-        // In full implementation, this would use loot_core
-        match currency.name.as_str() {
-            "Orb of Enhancement" => {
-                self.stats.damage += 2;
-                self.stats.defense += 1;
-                self.affixes.push("+2 damage, +1 defense".to_string());
-            }
-            "Orb of Chaos" => {
-                self.stats.damage = rand::thread_rng().gen_range(5..20);
-                self.stats.defense = rand::thread_rng().gen_range(0..10);
-                self.affixes.clear();
-                self.affixes.push("Rerolled stats".to_string());
-                self.rarity = Rarity::Rare;
-            }
-            "Orb of Augmentation" => {
-                if self.rarity == Rarity::Magic && self.affixes.len() < 2 {
-                    self.affixes.push("Added modifier".to_string());
-                    self.stats.damage += 1;
-                }
-            }
-            _ => {}
-        }
-    }
-
-    pub fn random_weapon(rng: &mut StdRng) -> Self {
-        let weapons = ["Iron Sword", "Steel Axe", "Bronze Mace", "Silver Dagger"];
-        let name = weapons[rng.gen_range(0..weapons.len())];
-        let damage = rng.gen_range(5..15);
-
-        Self {
-            name: name.to_string(),
-            slot: EquipSlot::Weapon,
-            stats: ItemStats { damage, defense: 0 },
-            rarity: if damage > 10 {
-                Rarity::Magic
-            } else {
-                Rarity::Common
-            },
-            affixes: Vec::new(),
-        }
-    }
-
-    pub fn random_armor(rng: &mut StdRng) -> Self {
-        let armors = ["Leather Vest", "Chain Mail", "Iron Plate", "Cloth Robe"];
-        let name = armors[rng.gen_range(0..armors.len())];
-        let defense = rng.gen_range(2..8);
-
-        Self {
-            name: name.to_string(),
-            slot: EquipSlot::Armor,
-            stats: ItemStats {
-                damage: 0,
-                defense,
-            },
-            rarity: if defense > 5 {
-                Rarity::Magic
-            } else {
-                Rarity::Common
-            },
-            affixes: Vec::new(),
-        }
-    }
-
-    pub fn random_currency(rng: &mut StdRng) -> Self {
-        let currencies = ["Orb of Enhancement", "Orb of Chaos", "Orb of Augmentation"];
-        let name = currencies[rng.gen_range(0..currencies.len())];
-
-        Self {
-            name: name.to_string(),
-            slot: EquipSlot::None,
-            stats: ItemStats {
-                damage: 0,
-                defense: 0,
-            },
-            rarity: Rarity::Common,
-            affixes: Vec::new(),
-        }
-    }
-
-    pub fn rarity_symbol(&self) -> &'static str {
-        match self.rarity {
-            Rarity::Common => "",
-            Rarity::Magic => "★",
-            Rarity::Rare => "★★",
+    pub fn rarity(&self) -> Rarity {
+        match self {
+            InventoryEntry::Item(item) => item.rarity,
+            InventoryEntry::Currency { .. } => Rarity::Normal,
         }
     }
 }
 
-#[derive(Debug)]
 pub struct Inventory {
-    pub items: Vec<Item>,
+    entries: Vec<InventoryEntry>,
 }
 
 impl Inventory {
     pub fn new() -> Self {
-        Self { items: Vec::new() }
+        Self {
+            entries: Vec::new(),
+        }
     }
 
     pub fn add_item(&mut self, item: Item) {
-        self.items.push(item);
+        self.entries.push(InventoryEntry::Item(item));
+    }
+
+    pub fn add_currency(&mut self, id: String) {
+        // Stack currencies
+        for entry in &mut self.entries {
+            if let InventoryEntry::Currency {
+                id: existing_id,
+                count,
+            } = entry
+            {
+                if existing_id == &id {
+                    *count += 1;
+                    return;
+                }
+            }
+        }
+        // New currency stack
+        self.entries.push(InventoryEntry::Currency { id, count: 1 });
+    }
+
+    pub fn get(&self, index: usize) -> Option<&InventoryEntry> {
+        self.entries.get(index)
+    }
+
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
+    pub fn remove_item(&mut self, index: usize) -> Option<Item> {
+        if index < self.entries.len() {
+            if let InventoryEntry::Item(_) = &self.entries[index] {
+                if let InventoryEntry::Item(item) = self.entries.remove(index) {
+                    return Some(item);
+                }
+            }
+        }
+        None
+    }
+
+    /// Replace an item at the given index, keeping it in the same position
+    pub fn replace_item(&mut self, index: usize, new_item: Item) -> bool {
+        if index < self.entries.len() {
+            if let InventoryEntry::Item(_) = &self.entries[index] {
+                self.entries[index] = InventoryEntry::Item(new_item);
+                return true;
+            }
+        }
+        false
+    }
+
+    pub fn remove_currency(&mut self, index: usize) -> Option<String> {
+        if index < self.entries.len() {
+            if let InventoryEntry::Currency { id, count } = &mut self.entries[index] {
+                let currency_id = id.clone();
+                if *count > 1 {
+                    *count -= 1;
+                } else {
+                    self.entries.remove(index);
+                }
+                return Some(currency_id);
+            }
+        }
+        None
     }
 
     pub fn has_currency(&self) -> bool {
-        self.items.iter().any(|item| item.is_currency())
+        self.entries
+            .iter()
+            .any(|e| matches!(e, InventoryEntry::Currency { .. }))
     }
 
-    pub fn get_currencies(&self) -> Vec<(usize, &Item)> {
-        self.items
+    pub fn get_currency_indices(&self) -> Vec<usize> {
+        self.entries
             .iter()
             .enumerate()
-            .filter(|(_, item)| item.is_currency())
+            .filter(|(_, e)| matches!(e, InventoryEntry::Currency { .. }))
+            .map(|(i, _)| i)
             .collect()
+    }
+
+    pub fn get_currencies(&self) -> Vec<(usize, &str)> {
+        self.entries
+            .iter()
+            .enumerate()
+            .filter_map(|(i, e)| {
+                if let InventoryEntry::Currency { id, .. } = e {
+                    Some((i, id.as_str()))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &InventoryEntry> {
+        self.entries.iter()
     }
 }

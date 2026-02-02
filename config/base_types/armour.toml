@@ -1,0 +1,61 @@
+# Armour base types for loot_core
+
+[[base_types]]
+id = "leather_vest"
+name = "Leather Vest"
+class = "body_armour"
+tags = ["Armour", "Body", "Evasion", "Life", "Resistance"]
+
+[base_types.requirements]
+level = 1
+
+[base_types.defenses]
+evasion = { min = 20, max = 30 }
+
+[[base_types]]
+id = "chain_mail"
+name = "Chain Mail"
+class = "body_armour"
+tags = ["Armour", "Body", "Life"]
+
+[base_types.requirements]
+level = 5
+
+[base_types.defenses]
+armour = { min = 40, max = 60 }
+
+[[base_types]]
+id = "iron_plate"
+name = "Iron Plate"
+class = "body_armour"
+tags = ["Armour", "Body", "Life"]
+
+[base_types.requirements]
+level = 10
+
+[base_types.defenses]
+armour = { min = 60, max = 90 }
+
+[[base_types]]
+id = "cloth_robe"
+name = "Cloth Robe"
+class = "body_armour"
+tags = ["Life", "Body", "EnergyShield", "Mana"]
+
+[base_types.requirements]
+level = 1
+
+[base_types.defenses]
+energy_shield = { min = 15, max = 25 }
+
+[[base_types]]
+id = "iron_helmet"
+name = "Iron Helmet"
+class = "helmet"
+tags = ["Armour", "Helmet", "Life"]
+
+[base_types.requirements]
+level = 3
+
+[base_types.defenses]
+armour = { min = 20, max = 35 }

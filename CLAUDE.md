@@ -76,38 +76,38 @@ cargo watch -x run   # Auto-rebuild and run on file changes
 
 ```
 src/
-├── main.rs              # Entry point, event loop
-├── app.rs               # App state machine
-├── config.rs            # Load all three Obelisk crate configs
+├── main.rs              # Entry point, terminal setup, event loop
+├── app.rs               # App state machine, game logic coordination
+├── input.rs             # Keybind handling for all input modes
 ├── ui/
-│   ├── mod.rs
-│   ├── player_panel.rs  # Left panel (stats display)
+│   ├── mod.rs           # Layout + help bar rendering
+│   ├── player_panel.rs  # Left panel (HP, mana, stats, equipment)
 │   ├── combat_panel.rs  # Center panel (enemy + combat log)
 │   └── inventory_panel.rs # Right panel (items + equip + craft)
-├── game/
-│   ├── mod.rs
-│   ├── player.rs        # Player struct wrapping StatBlock
-│   ├── enemy.rs         # Enemy struct with drop table ref
-│   ├── combat.rs        # Damage resolution using stat_core
-│   └── inventory.rs     # Item storage + equip/craft logic
-└── input.rs             # Keybind handling
+└── game/
+    ├── mod.rs           # GameConfig loader (Obelisk integration)
+    ├── player.rs        # Player struct wrapping stat_core::StatBlock
+    ├── enemy.rs         # Enemy struct with stats
+    ├── combat.rs        # Damage calculations
+    └── inventory.rs     # Item/currency storage
 ```
 
-### Config Files
+### Config Files (TOML format)
 
 ```
 config/
-├── items/
-│   ├── bases.ron        # Item base types (loot_core)
-│   └── affixes.ron      # Affix definitions (loot_core)
-├── tables/
-│   └── enemy.ron        # Drop table for enemy (tables_core)
-├── skills/
-│   └── skills.ron       # 4 skill definitions (stat_core)
-├── currencies/
-│   └── currencies.ron   # Crafting currencies (loot_core)
-└── enemies/
-    └── enemies.ron      # Enemy stat template (stat_core)
+├── base_types/              # Item base types (loot_core)
+│   ├── weapons.toml         # Sword, axe, dagger, mace definitions
+│   └── armour.toml          # Body armour, helmet definitions
+├── affixes/                 # Modifier definitions (loot_core)
+│   ├── weapon_affixes.toml  # +damage, attack speed, crit
+│   └── armour_affixes.toml  # +life, +armour, resistances
+├── affix_pools/             # Affix groupings (loot_core)
+│   └── pools.toml           # weapon_pool, armour_pool
+├── currencies/              # Crafting orbs (loot_core)
+│   └── currencies.toml      # Transmutation, Augmentation, Chaos, etc.
+└── tables/                  # Drop tables (tables_core)
+    └── goblin.toml          # Enemy loot table with weighted drops
 ```
 
 ### Crate Demonstration Matrix

@@ -1,120 +1,164 @@
-use super::inventory::Item;
-use serde::Deserialize;
+use super::GameConfig;
+use loot_core::Item;
+use stat_core::{
+    types::SkillTag, BaseDamage, DamagePacketGenerator, DamageType, EquipmentSlot, StatBlock,
+};
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct Skill {
-    pub name: String,
-    pub damage_multiplier: f32,
-    pub mana_cost: u32,
-    pub description: String,
+/// Create the player's skill set as DamagePacketGenerators
+pub fn create_skills() -> Vec<DamagePacketGenerator> {
+    vec![
+        // Power Strike - high damage melee attack
+        DamagePacketGenerator {
+            id: "power_strike".to_string(),
+            name: "Power Strike".to_string(),
+            base_damages: vec![BaseDamage::new(DamageType::Physical, 5.0, 10.0)],
+            weapon_effectiveness: 1.5,
+            damage_effectiveness: 1.0,
+            base_crit_chance: 5.0,
+            tags: vec![SkillTag::Attack, SkillTag::Physical, SkillTag::Melee],
+            ..Default::default()
+        },
+        // Fireball - fire spell
+        DamagePacketGenerator {
+            id: "fireball".to_string(),
+            name: "Fireball".to_string(),
+            base_damages: vec![BaseDamage::new(DamageType::Fire, 20.0, 35.0)],
+            weapon_effectiveness: 0.0,
+            damage_effectiveness: 1.0,
+            base_crit_chance: 6.0,
+            tags: vec![SkillTag::Spell, SkillTag::Fire, SkillTag::Projectile],
+            ..Default::default()
+        },
+        // Quick Slash - fast but weaker attack
+        DamagePacketGenerator {
+            id: "quick_slash".to_string(),
+            name: "Quick Slash".to_string(),
+            base_damages: vec![BaseDamage::new(DamageType::Physical, 3.0, 6.0)],
+            weapon_effectiveness: 0.8,
+            damage_effectiveness: 0.8,
+            base_crit_chance: 8.0,
+            attack_speed_modifier: 1.3,
+            tags: vec![SkillTag::Attack, SkillTag::Physical, SkillTag::Melee],
+            ..Default::default()
+        },
+        // Heavy Blow - slow but massive damage
+        DamagePacketGenerator {
+            id: "heavy_blow".to_string(),
+            name: "Heavy Blow".to_string(),
+            base_damages: vec![BaseDamage::new(DamageType::Physical, 15.0, 25.0)],
+            weapon_effectiveness: 2.0,
+            damage_effectiveness: 1.5,
+            base_crit_chance: 5.0,
+            attack_speed_modifier: 0.7,
+            tags: vec![SkillTag::Attack, SkillTag::Physical, SkillTag::Melee],
+            ..Default::default()
+        },
+    ]
 }
 
-#[derive(Debug)]
+/// Mana costs for skills (indexed by skill position)
+pub fn skill_mana_costs() -> Vec<u32> {
+    vec![10, 20, 5, 25]
+}
+
 pub struct Player {
-    pub max_hp: u32,
-    pub current_hp: u32,
-    pub max_mana: u32,
-    pub current_mana: u32,
-    pub strength: u32,
-    pub dexterity: u32,
-    pub intelligence: u32,
-    pub equipped_weapon: Option<Item>,
-    pub equipped_armor: Option<Item>,
-    pub skills: Vec<Skill>,
+    pub stats: StatBlock,
+    pub skills: Vec<DamagePacketGenerator>,
+    pub skill_mana_costs: Vec<u32>,
 }
 
 impl Player {
-    pub fn new() -> Self {
+    pub fn new(_config: &GameConfig) -> Self {
+        let mut stats = StatBlock::with_id("player");
+
+        // Set base stats
+        stats.max_life.base = 100.0;
+        stats.current_life = 100.0;
+        stats.max_mana.base = 50.0;
+        stats.current_mana = 50.0;
+
+        // Attributes
+        stats.strength.base = 10.0;
+        stats.dexterity.base = 8.0;
+        stats.intelligence.base = 6.0;
+
+        // Base weapon damage (unarmed)
+        stats.weapon_physical_min = 5.0;
+        stats.weapon_physical_max = 8.0;
+        stats.weapon_attack_speed = 1.0;
+        stats.weapon_crit_chance = 5.0;
+
+        // Base defenses
+        stats.armour.base = 10.0;
+        stats.evasion.base = 10.0;
+
+        // Base accuracy for hit calculations
+        stats.accuracy.base = 100.0;
+
         Self {
-            max_hp: 100,
-            current_hp: 100,
-            max_mana: 50,
-            current_mana: 50,
-            strength: 10,
-            dexterity: 8,
-            intelligence: 6,
-            equipped_weapon: None,
-            equipped_armor: None,
-            skills: Self::load_default_skills(),
+            stats,
+            skills: create_skills(),
+            skill_mana_costs: skill_mana_costs(),
         }
     }
 
-    fn load_default_skills() -> Vec<Skill> {
-        vec![
-            Skill {
-                name: "Power Strike".to_string(),
-                damage_multiplier: 1.5,
-                mana_cost: 10,
-                description: "A powerful melee attack".to_string(),
-            },
-            Skill {
-                name: "Fireball".to_string(),
-                damage_multiplier: 2.0,
-                mana_cost: 20,
-                description: "Hurls a ball of fire".to_string(),
-            },
-            Skill {
-                name: "Quick Slash".to_string(),
-                damage_multiplier: 0.8,
-                mana_cost: 5,
-                description: "A fast, weak attack".to_string(),
-            },
-            Skill {
-                name: "Heavy Blow".to_string(),
-                damage_multiplier: 2.5,
-                mana_cost: 30,
-                description: "A devastating strike".to_string(),
-            },
-        ]
-    }
+    pub fn equip(&mut self, slot: EquipmentSlot, item: Item) -> Option<Item> {
+        // Save current resources before equipping (rebuild() resets everything)
+        let current_life = self.stats.current_life;
+        let current_mana = self.stats.current_mana;
 
-    pub fn take_damage(&mut self, damage: u32) -> bool {
-        let defense = self.calculate_defense();
-        let actual_damage = damage.saturating_sub(defense);
-        self.current_hp = self.current_hp.saturating_sub(actual_damage);
-        self.current_hp == 0
-    }
+        // Save base stats that rebuild() will wipe
+        let base_max_life = self.stats.max_life.base;
+        let base_max_mana = self.stats.max_mana.base;
+        let base_strength = self.stats.strength.base;
+        let base_dexterity = self.stats.dexterity.base;
+        let base_intelligence = self.stats.intelligence.base;
+        let base_armour = self.stats.armour.base;
+        let base_evasion = self.stats.evasion.base;
+        let base_accuracy = self.stats.accuracy.base;
 
-    pub fn calculate_defense(&self) -> u32 {
-        let base_defense = self.dexterity / 2;
-        let armor_defense = self
-            .equipped_armor
-            .as_ref()
-            .map(|a| a.stats.defense)
-            .unwrap_or(0);
-        base_defense + armor_defense
-    }
+        // First unequip any existing item
+        let old_item = self.stats.unequip(slot);
 
-    pub fn calculate_attack(&self) -> u32 {
-        let base_attack = self.strength;
-        let weapon_attack = self
-            .equipped_weapon
-            .as_ref()
-            .map(|w| w.stats.damage)
-            .unwrap_or(0);
-        base_attack + weapon_attack
-    }
+        // Equip the new item (this calls rebuild() internally)
+        self.stats.equip(slot, item);
 
-    pub fn equip(&mut self, item: Item) -> Option<Item> {
-        match item.slot {
-            EquipSlot::Weapon => {
-                let old = self.equipped_weapon.take();
-                self.equipped_weapon = Some(item);
-                old
-            }
-            EquipSlot::Armor => {
-                let old = self.equipped_armor.take();
-                self.equipped_armor = Some(item);
-                old
-            }
-            EquipSlot::None => None,
+        // Restore base stats after rebuild
+        self.stats.max_life.base = base_max_life;
+        self.stats.max_mana.base = base_max_mana;
+        self.stats.strength.base = base_strength;
+        self.stats.dexterity.base = base_dexterity;
+        self.stats.intelligence.base = base_intelligence;
+        self.stats.armour.base = base_armour;
+        self.stats.evasion.base = base_evasion;
+        self.stats.accuracy.base = base_accuracy;
+
+        // If no weapon equipped, restore unarmed damage
+        if self.stats.equipped(EquipmentSlot::MainHand).is_none() {
+            self.stats.weapon_physical_min = 5.0;
+            self.stats.weapon_physical_max = 8.0;
+            self.stats.weapon_attack_speed = 1.0;
+            self.stats.weapon_crit_chance = 5.0;
         }
-    }
-}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EquipSlot {
-    Weapon,
-    Armor,
-    None,
+        // Restore current HP/mana, clamped to new max values
+        let max_life = self.stats.max_life.compute();
+        let max_mana = self.stats.max_mana.compute();
+        self.stats.current_life = current_life.min(max_life);
+        self.stats.current_mana = current_mana.min(max_mana);
+
+        old_item
+    }
+
+    pub fn max_life(&self) -> f64 {
+        self.stats.max_life.compute()
+    }
+
+    pub fn max_mana(&self) -> f64 {
+        self.stats.max_mana.compute()
+    }
+
+    pub fn get_equipped(&self, slot: EquipmentSlot) -> Option<&Item> {
+        self.stats.equipped(slot)
+    }
 }

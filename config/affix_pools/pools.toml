@@ -1,0 +1,9 @@
+# Affix pool definitions
+
+[[pools]]
+id = "weapon_pool"
+affixes = ["added_phys_1", "added_fire_1", "attack_speed_1", "crit_chance_1"]
+
+[[pools]]
+id = "armour_pool"
+affixes = ["added_life_1", "added_armour_1", "added_evasion_1", "fire_res_1", "cold_res_1", "lightning_res_1"]
