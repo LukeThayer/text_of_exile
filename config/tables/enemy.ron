@@ -1,0 +1,38 @@
+// Drop table for the Goblin enemy using tables_core
+// Weighted probability rolls determine what items drop
+(
+    name: "Goblin",
+    guaranteed_drops: 1,
+    bonus_drops: (min: 0, max: 2),
+
+    items: [
+        (
+            item_type: Weapon,
+            weight: 30,
+            quantity: 1,
+        ),
+        (
+            item_type: Armor,
+            weight: 25,
+            quantity: 1,
+        ),
+    ],
+
+    currencies: [
+        (
+            currency: "Orb of Enhancement",
+            weight: 50,
+            quantity: (min: 1, max: 2),
+        ),
+        (
+            currency: "Orb of Augmentation",
+            weight: 40,
+            quantity: 1,
+        ),
+        (
+            currency: "Orb of Chaos",
+            weight: 10,
+            quantity: 1,
+        ),
+    ],
+)
