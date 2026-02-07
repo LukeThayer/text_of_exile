@@ -296,7 +296,7 @@ impl App {
                 });
 
                 if let Some(currency_id) = currency_id_opt {
-                    let old_rarity = item.rarity;
+                    let old_rarity = item.rarity.clone();
 
                     match self.config.generator.apply_currency(&item, &currency_id) {
                         Ok(new_item) => {

@@ -1,6 +1,6 @@
 use crate::app::{App, InputMode};
 use crate::game::inventory::InventoryEntry;
-use loot_core::{item::Modifier, AffixScope, DamageType, Rarity, StatType};
+use loot_core::{item::Modifier, AffixScope, DamageType, StatType};
 use ratatui::{
     layout::Rect,
     style::{Color, Modifier as StyleModifier, Style},
@@ -35,17 +35,17 @@ pub fn render(frame: &mut Frame, app: &App, area: Rect) {
             let prefix = if is_selected { " > " } else { "   " };
 
             let rarity_color = match entry.rarity() {
-                Rarity::Normal => Color::White,
-                Rarity::Magic => Color::Blue,
-                Rarity::Rare => Color::Yellow,
-                Rarity::Unique => Color::Rgb(175, 95, 0),
+                "magic" => Color::Blue,
+                "rare" => Color::Yellow,
+                "unique" => Color::Rgb(175, 95, 0),
+                _ => Color::White,
             };
 
             let rarity_label = match entry.rarity() {
-                Rarity::Normal => "",
-                Rarity::Magic => " [Magic]",
-                Rarity::Rare => " [Rare]",
-                Rarity::Unique => " [Unique]",
+                "magic" => " [Magic]",
+                "rare" => " [Rare]",
+                "unique" => " [Unique]",
+                _ => "",
             };
 
             let name = entry.name();

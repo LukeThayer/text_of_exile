@@ -1,4 +1,4 @@
-use loot_core::{Item, Rarity};
+use loot_core::Item;
 
 /// Represents either an item or a currency in the inventory
 pub enum InventoryEntry {
@@ -31,10 +31,10 @@ impl InventoryEntry {
         matches!(self, InventoryEntry::Currency { .. })
     }
 
-    pub fn rarity(&self) -> Rarity {
+    pub fn rarity(&self) -> &str {
         match self {
-            InventoryEntry::Item(item) => item.rarity,
-            InventoryEntry::Currency { .. } => Rarity::Normal,
+            InventoryEntry::Item(item) => &item.rarity,
+            InventoryEntry::Currency { .. } => "normal",
         }
     }
 }
